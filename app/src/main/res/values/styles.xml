@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="PkTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">@color/pk_red</item>
+        <item name="android:statusBarColor">@color/pk_black</item>
+        <item name="android:navigationBarColor">@color/pk_black</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/pk_black</item>
+    </style>
+</resources>

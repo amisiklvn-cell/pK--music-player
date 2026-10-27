@@ -1,0 +1,315 @@
+    }
+
+    private void buildScreen() {
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(BLACK);
+        root.setPadding(dp(18), dp(12), dp(18), dp(8));
+
+        LinearLayout logo = new LinearLayout(this);
+        logo.setGravity(Gravity.CENTER);
+        logo.setOrientation(LinearLayout.HORIZONTAL);
+
+        TextView letterP = new TextView(this);
+        letterP.setText("p");
+        letterP.setTextColor(SKY_BLUE);
+        letterP.setTextSize(66);
+        letterP.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+
+        TextView letterK = new TextView(this);
+        letterK.setText("k");
+        letterK.setTextColor(RED);
+        letterK.setTextSize(66);
+        letterK.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+
+        logo.addView(letterP);
+        logo.addView(letterK);
+
+        TextView heading = new TextView(this);
+        heading.setText("MUSIC PLAYER");
+        heading.setTextColor(SKY_BLUE);
+        heading.setTextSize(16);
+        heading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        heading.setGravity(Gravity.CENTER);
+
+        TextView libraryTitle = new TextView(this);
+        libraryTitle.setText("YOUR MUSIC");
+        libraryTitle.setTextColor(WHITE);
+        libraryTitle.setTextSize(20);
+        libraryTitle.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        libraryTitle.setPadding(0, dp(12), 0, dp(3));
+
+        countText = new TextView(this);
+        countText.setTextColor(SECONDARY);
+        countText.setTextSize(13);
+
+        statusText = new TextView(this);
+        statusText.setTextColor(SECONDARY);
+        statusText.setTextSize(13);
+        statusText.setPadding(0, dp(4), 0, dp(6));
+
+        searchInput = new EditText(this);
+        searchInput.setSingleLine(true);
+        searchInput.setVisibility(searchVisible ? View.VISIBLE : View.GONE);
+        searchInput.setTextColor(WHITE);
+        searchInput.setHintTextColor(SECONDARY);
+        searchInput.setHint("Search title or artist");
+        searchInput.setTextSize(15);
+        searchInput.setPadding(dp(12), dp(6), dp(12), dp(6));
+        searchInput.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(SKY_BLUE));
+
+        sortSpinner = new Spinner(this);
+        String[] sortOptions = {
+                "Newest first", "Oldest first", "Title A-Z", "Artist A-Z"
+        };
+        ArrayAdapter<String> sortAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, sortOptions);
+        sortAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        sortSpinner.setAdapter(sortAdapter);
+        sortSpinner.setVisibility(View.GONE);
+        sortSpinner.setOnItemSelectedListener(
+                new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent,
+                    View view, int position, long id) {
+                sortAndRenderSongs();
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) { }
+        });
+
+        searchInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence text, int start,
+                    int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence text, int start,
+                    int before, int count) {
+                renderSongRows();
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable text) { }
+        });
+
+        songList = new LinearLayout(this);
+        songList.setOrientation(LinearLayout.VERTICAL);
+
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.setFillViewport(false);
+        scrollView.addView(songList);
+
+        LinearLayout nowPanel = new LinearLayout(this);
+        nowPanel.setOrientation(LinearLayout.VERTICAL);
+        nowPanel.setPadding(dp(12), dp(10), dp(12), dp(8));
+        nowPanel.setBackgroundColor(SURFACE);
+
+        TextView nowHeading = new TextView(this);
+        nowHeading.setText("NOW PLAYING");
+        nowHeading.setTextColor(RED);
+        nowHeading.setTextSize(12);
+        nowHeading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+
+        nowTitle = new TextView(this);
+        nowTitle.setText("No song selected");
+        nowTitle.setTextColor(WHITE);
+        nowTitle.setTextSize(16);
+        nowTitle.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        nowTitle.setMaxLines(1);
+
+        nowArtist = new TextView(this);
+        nowArtist.setText("Choose a song from your library");
+        nowArtist.setTextColor(SECONDARY);
+        nowArtist.setTextSize(12);
+        nowArtist.setMaxLines(1);
+
+        // Responsive album artwork sized for the available phone height.
+        float density = getResources().getDisplayMetrics().density;
+        int screenHeightDp = (int) (
+                getResources().getDisplayMetrics().heightPixels / density);
+        int coverSize = Math.max(120,
+                Math.min(220, screenHeightDp - 540));
+
+        coverPlaceholder = new TextView(this);
+        coverPlaceholder.setText("♫");
+        coverPlaceholder.setTextColor(RED);
+        coverPlaceholder.setTextSize(Math.max(48, coverSize * 0.38f));
+        coverPlaceholder.setGravity(Gravity.CENTER);
+        coverPlaceholder.setBackgroundColor(BLACK);
+
+        LinearLayout.LayoutParams coverParams =
+                new LinearLayout.LayoutParams(dp(coverSize), dp(coverSize));
+        coverParams.gravity = Gravity.CENTER_HORIZONTAL;
+        coverParams.bottomMargin = dp(10);
+        nowPanel.addView(coverPlaceholder, coverParams);
+
+        seekBar = new SeekBar(this);
+        seekBar.setMax(1000);
+        seekBar.setProgressTintList(android.content.res.ColorStateList.valueOf(RED));
+        seekBar.setThumbTintList(android.content.res.ColorStateList.valueOf(RED));
+        seekBar.setProgressBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(SECONDARY));
+
+        timeText = new TextView(this);
+        timeText.setText("0:00 / 0:00");
+        timeText.setTextColor(SECONDARY);
+        timeText.setTextSize(11);
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                if (fromUser) userSeeking = true;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar bar) {
+                userSeeking = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar bar) {
+                if (controller != null && controller.isCommandAvailable(
+                        Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)) {
+                    long duration = controller.getDuration();
+                    if (duration > 0) {
+                        controller.seekTo((long) (duration * bar.getProgress() / 1000.0));
+                    }
+                }
+                userSeeking = false;
+                updateProgress();
+            }
+        });
+
+        LinearLayout controls = new LinearLayout(this);
+        controls.setGravity(Gravity.CENTER);
+        controls.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button previousButton = makeButton("⏮");
+        playButton = makeButton("▶");
+        Button nextButton = makeButton("⏭");
+
+        previousButton.setOnClickListener(v -> {
+            if (controller != null && controller.hasPreviousMediaItem()) {
+                controller.seekToPreviousMediaItem();
+                controller.play();
+            }
+        });
+
+        playButton.setOnClickListener(v -> {
+            if (controller == null) {
+                toast("Player is connecting. Try again.");
+                return;
+            }
+
+            if (controller.isPlaying()) {
+                controller.pause();
+            } else if (controller.getMediaItemCount() > 0) {
+                if (controller.getPlaybackState() == Player.STATE_IDLE) {
+                    controller.prepare();
+                }
+                controller.play();
+            } else if (!songs.isEmpty()) {
+                playSong(0);
+            } else {
+                toast("No songs found");
+            }
+        });
+
+        nextButton.setOnClickListener(v -> {
+            if (controller != null && controller.hasNextMediaItem()) {
+                controller.seekToNextMediaItem();
+                controller.play();
+            }
+        });
+
+        controls.addView(previousButton);
+        controls.addView(playButton);
+        controls.addView(nextButton);
+
+        LinearLayout modes = new LinearLayout(this);
+        modes.setGravity(Gravity.CENTER);
+        modes.setOrientation(LinearLayout.HORIZONTAL);
+
+        shuffleButton = new TextView(this);
+        shuffleButton.setTextSize(13);
+        shuffleButton.setPadding(dp(16), dp(6), dp(16), dp(6));
+
+        repeatButton = new TextView(this);
+        repeatButton.setTextSize(13);
+        repeatButton.setPadding(dp(16), dp(6), dp(16), dp(6));
+
+        shuffleButton.setOnClickListener(v -> {
+            shuffleEnabled = !shuffleEnabled;
+            if (controller != null) {
+                controller.setShuffleModeEnabled(shuffleEnabled);
+            }
+            updateModeButtons();
+        });
+
+        repeatButton.setOnClickListener(v -> {
+            if (repeatMode == Player.REPEAT_MODE_OFF) {
+                repeatMode = Player.REPEAT_MODE_ALL;
+            } else if (repeatMode == Player.REPEAT_MODE_ALL) {
+                repeatMode = Player.REPEAT_MODE_ONE;
+            } else {
+                repeatMode = Player.REPEAT_MODE_OFF;
+            }
+
+            if (controller != null) {
+                controller.setRepeatMode(repeatMode);
+            }
+            updateModeButtons();
+        });
+
+        modes.addView(shuffleButton);
+        modes.addView(repeatButton);
+
+
+        nowPanel.addView(nowHeading);
+        nowPanel.addView(nowTitle);
+        nowPanel.addView(nowArtist);
+        nowPanel.addView(seekBar);
+        nowPanel.addView(timeText);
+        nowPanel.addView(controls);
+        nowPanel.addView(modes);
+
+        LinearLayout topBar = new LinearLayout(this);
+        topBar.setOrientation(LinearLayout.HORIZONTAL);
+        topBar.setGravity(Gravity.CENTER_VERTICAL);
+
+        topBar.addView(logo, new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+
+        TextView menuButton = new TextView(this);
+        menuButton.setText("\u22ee");
+        menuButton.setTextColor(WHITE);
+        menuButton.setTextSize(30);
+        menuButton.setGravity(Gravity.CENTER);
+        menuButton.setContentDescription("Open app menu");
+        menuButton.setPadding(dp(12), 0, dp(4), 0);
+        menuButton.setOnClickListener(v -> showTopMenu(menuButton));
+        topBar.addView(menuButton, new LinearLayout.LayoutParams(
+                dp(48), dp(52)));
+
+        root.addView(topBar);
+        root.addView(heading);
+        root.addView(libraryTitle);
+        root.addView(countText);
+        root.addView(statusText);
+        root.addView(searchInput, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(48)));
+        root.addView(sortSpinner, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(48)));
+        root.addView(scrollView, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(100)));
+        root.addView(nowPanel, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
+
+        setContentView(root);
+        updateModeButtons();
+    }
+

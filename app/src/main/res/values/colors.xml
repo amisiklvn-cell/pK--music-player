@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pk_black">#0C0C0F</color>
+    <color name="pk_surface">#19191F</color>
+    <color name="pk_red">#FF3045</color>
+    <color name="pk_sky_blue">#87CEEB</color>
+    <color name="pk_white">#FFFFFF</color>
+    <color name="pk_text_secondary">#B0B0BA</color>
+</resources>
